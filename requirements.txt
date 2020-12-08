@@ -1,0 +1,2 @@
+discord.py==1.5.1
+google-api-python-client==1.12.8
