@@ -69,6 +69,85 @@ class Fixture(object):
             return 'draw'
 
 
+class Player(object):
+    def __init__(self, name, points=0, correct_results=0, correct_scorelines=0, correct_h_score=0, correct_a_score=0):
+        self.name = name
+        self.points = int(points)
+        self.correct_results = int(correct_results)
+        self.correct_scorelines = int(correct_scorelines)
+        self.correct_h_score = int(correct_h_score)
+        self.correct_a_score = int(correct_a_score)
+
+    def __str__(self):
+        return '{} has {} points'.format(self.name, self.points)
+
+    def add_points(self, score):
+        self.points += score['points']
+        if score['result']:
+            self.correct_results += 1
+        if score['home'] and score['away']:
+            self.correct_scorelines += 1
+        if score['away']:
+            self.correct_a_score += 1
+        if score['home']:
+            self.correct_h_score += 1
+
+
+class Prediction(object):
+    def __init__(self, scoreline):
+        if '(c)' in scoreline.lower():
+            self.scoreline = scoreline.lower().replace('(c)', '')
+            self.multiplier = 2
+        elif scoreline:
+            self.scoreline = scoreline
+            self.multiplier = 1
+        else:
+            self.scoreline = None
+            self.multiplier = 1
+        self.team_h_score = int(self.scoreline.split('-')[0]) if self.scoreline else None
+        self.team_a_score = int(self.scoreline.split('-')[1]) if self.scoreline else None
+        self.result = self.get_result()
+
+    def get_result(self):
+        if self.scoreline is None:
+            return None
+        elif self.team_h_score > self.team_a_score:
+            return 'home'
+        elif self.team_a_score > self.team_h_score:
+            return 'away'
+        elif self.team_h_score == self.team_a_score:
+            return 'draw'
+
+    def evaluate_prediction(self, fixture):
+        """
+        Evaluates a prediction and returns the number of points scored;
+            if result is correct then returns 2
+            if scoreline is correct then returns 4
+            else returns 0
+        :param fixture
+        :return:
+        """
+        score = {
+            'points': 0,
+            'result': False,
+            'away': False,
+            'home': False
+        }
+        if (not self.result) or (not self.scoreline) or (
+                not fixture.result) or (not fixture.scoreline) or (self.result != fixture.result):
+            score['points'] = 0
+        if self.result == fixture.result:
+            score['points'] += (2 * self.multiplier)
+            score['result'] = True
+            if self.team_h_score == fixture.team_h_score:
+                score['points'] += (1 * self.multiplier)
+                score['home'] = True
+            if self.team_a_score == fixture.team_a_score:
+                score['points'] += (1 * self.multiplier)
+                score['away'] = True
+        return score
+
+
 class GoogleSheets(object):
     def _get_sheet_(self):
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
