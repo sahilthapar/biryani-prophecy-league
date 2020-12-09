@@ -8,14 +8,11 @@ bot.teams = {}
 @bot.event
 async def on_ready():
     bot.sheets = get_sheets()
+    bot.primary_sheet = bot.sheets[-1][-1]
     bot.teams = get_teams()
     bot.start_gw = 12
     bot.base_padding = 0
     print('Bot is ready')
-# @bot.command()
-# async def help(ctx):
-#     await ctx.send('Hello and welcome to the Biryani Prophecy League!')
-#     await ctx.send('What would you like help with today?')
 
 
 @bot.command(aliases=['sf'])
@@ -36,13 +33,24 @@ async def add_fixtures(ctx, *, gw: int):
     await ctx.send('Fixtures for Gameweek: ' + str(gw) + ' have been updated in the sheets')
 
 
+@bot.command(aliases=['up'])
+@commands.has_permissions(administrator=True)
+async def update_predictions(ctx, *, gw: int):
+    events = get_events(gameweek=str(gw), teams=bot.teams)
+    start, end = get_interval(fixtures=events, gameweek=gw, start_gw=bot.start_gw, base_padding=bot.base_padding)
+    for i, (name, sheet) in enumerate(bot.sheets):
+        player_predictions = sheet.get_data('Fixtures', '!C{}:C{}'.format(start, end))
+        col = chr(ord('C') + (i if i <= 2 else i+1))
+        bot.primary_sheet.put_data('Fixtures',
+                                   '!{col}{start}:col{end}'.format(col=col, start=start, end=end),
+                                   player_predictions)
+
+
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int):
     await ctx.channel.purge(limit=amount + 1)
     await ctx.send(f"{amount} message(s) got deleted")
-
-
 
 token = get_discord_token()
 bot.run(token)
