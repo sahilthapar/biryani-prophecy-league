@@ -1,5 +1,6 @@
 secrets.json
 token.pickle
+credentials.json
 .idea
 *__pycache/
 venv
