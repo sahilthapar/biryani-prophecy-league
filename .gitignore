@@ -6,3 +6,4 @@ credentials.json
 venv
 *cache/
 ./log/*
+

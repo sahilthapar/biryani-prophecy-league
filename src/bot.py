@@ -11,12 +11,14 @@ logging.basicConfig(filename='../log/bot.log', level=logging.INFO, format='%(asc
 
 @bot.event
 async def on_ready():
-    bot.start_gw = 12
-    bot.base_padding = 0
+    bot.start_gw = 23
+    bot.base_padding = 3
     bootstrap(bot)
     await bot.change_presence(status=Status.idle, activity=Game("Alfred"))
     logging.info('Bot is now online!')
     logging.info('Current Gameweek: %s', str(bot.gameweek_id))
+    print('Current Gameweek: %s', str(bot.gameweek_id))
+    print(bot.start, bot.end)
 
 
 @bot.command(aliases=['sf', 'show_fixtures'],
@@ -70,11 +72,16 @@ async def live(ctx):
     logging.info('Command: live, User: %s', ctx.message.author.name)
     # Update results
     bot.fixtures = get_events(gameweek=bot.gameweek_id, teams=bot.teams)
+    print(len(bot.fixtures))
+    print([
+        '{f.team_h.short_name} {f.team_h_score} {f.team_a_score} {f.team_a.short_name}'\
+        .format(f=f) for f in bot.fixtures])
     live_games = filter(lambda i: i.team_h_score is not None, bot.fixtures)
     live_scores = [
         '{f.team_h.short_name} {f.team_h_score} {f.team_a_score} {f.team_a.short_name}'.format(f=f) for f in live_games
     ]
     put_results = [[x.scoreline] for x in bot.fixtures]
+    print(put_results)
     bot.primary_sheet.put_data('Fixtures', '!H{}:H{}'.format(bot.start, bot.end), put_results)
     await ctx.send('\n'.join(live_scores))
     # Calculate Live standings

@@ -10,6 +10,10 @@ H = httplib2.Http(".cache", disable_ssl_certificate_validation=True)
 def find_gameweek(events):
     cur = next(item for item in events if item["is_current"] is True)
     nxt = next(item for item in events if item["is_next"] is True)
+    # Use this when late
+    # prev = next(item for item in events if item["is_previous"] is True)
+    # return prev
+    # return cur
     if cur['finished'] and cur['data_checked']:
         return nxt
     else:
@@ -57,7 +61,7 @@ def get_events(gameweek, teams):
 
 
 def get_interval(fixtures: list, gameweek: int, start_gw: int, base_padding=0):
-    base_padding = 0
+    base_padding = base_padding
     start = (11 * (gameweek - start_gw)) + 2 + base_padding
     end = start + len(fixtures) - 1
     return start, end
